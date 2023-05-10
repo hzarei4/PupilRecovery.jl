@@ -1,0 +1,8 @@
+name = "PupilRecovery"
+uuid = "c113493e-e480-4375-a98f-1c84215a81d1"
+authors = ["hzarei4 <hzoshtolagh@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+ZernikePolynomials = "e462d300-c971-11e9-30f1-fb93b1f8f73a"
