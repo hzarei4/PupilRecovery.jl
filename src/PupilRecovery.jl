@@ -23,7 +23,7 @@ function CreatePupil(; random_phase=false, px=40, upsampling=4)
 end
 
 function CreatePSF(Pupil)
-    abs2.(fftshift(fft(ifftshift(Pupil))))
+    abs.(fftshift(fft(ifftshift(Pupil))))
 end
 
 function AddingNoise(psf; scaling=0.1)
@@ -70,22 +70,25 @@ function convolution_filter(x, kernel)
 end
 
 
-function DMonPSF(psf; beta=0.99, it_max=10000)
+function DMonPSF(psf; beta=0.7, it_max=10000)
     gamma_M = -1.0/beta
     gamma_S = 1.0/beta
     psf = fftshift(psf)
+
     x = rand(ComplexF64, size(psf))
+    # f_1 = zeros(Float64, size(psf)[1])
     x_sol = zeros(ComplexF64, size(psf))
     S_in = zeros(Float64, size(psf))
     M_in = zeros(Float64, size(psf))
 
     C_lp = zeros(size(psf))
-    C_lp[20:size(psf)[1]-20, 20:size(psf)[2]-20] .= 1
+    C_lp[10:size(psf)[1]-10, 10:size(psf)[2]-10] .= 1
     C_lp .= ifftshift(C_lp)
 
-    supp = zeros(size(psf))
-    supp[20:size(psf)[1]-20, 20:size(psf)[2]-20] .= 1
-    supp .= supp
+    # (evaluateZernike(LinRange(-1, 1, size(psf)[1]), [0], [1.0], index=:OSA))
+    supp =  zeros(size(psf))
+    supp[10:size(psf)[1]-10, 10:size(psf)[2]-10] .= 1
+    supp .= ifftshift(supp)
 
     S_in .= supp
     M_in .= psf
@@ -103,20 +106,22 @@ function DMonPSF(psf; beta=0.99, it_max=10000)
             x_mod = convolution_filter(x_sol, C_lp)
             x_mod = abs.(x_mod)
             x_mod .= x_mod./ maximum(x_mod)
-            supp .= x_mod .> 0.05
+            supp .= x_mod .> 0.038
             S_in = supp
         end
     
-        if it % (it_max/10) == 0
-            Plots.display(plot(
+        # if it % 50 == 0
+        #     Plots.display(plot(
 
-                heatmap(angle.((x_sol)), title = "Rec phase, loop $(it)", 
-                    aspect_ratio=1, c=:twilight, clim=(-1*pi, pi), legend = :none), 
-                heatmap(abs.(fftshift(fft(x_sol))), title = "Rec PSF", aspect_ratio=1, legend = :none),
-                heatmap(fftshift(psf), title = "True PSF", aspect_ratio=1, legend = :none),
-
-                ))
-            sleep(0.2)
+        #         heatmap(angle.((x_sol)), title = "Rec phase, loop $(it)", 
+        #             aspect_ratio=1, c=:twilight, clim=(-1*pi, pi), legend = :none), 
+        #         heatmap(abs.(fftshift(fft(x_sol))), title = "Rec PSF", aspect_ratio=1, legend = :none),
+        #         heatmap(fftshift(psf), title = "True PSF", aspect_ratio=1, legend = :none),
+                
+        #         heatmap((abs.(fftshift(fft(x_sol))) .- abs.(fftshift(psf)))./maximum(abs.(fftshift(psf))), 
+        #             title = "PSF diff, scaled", aspect_ratio=1),
+        #         ))
+        #     sleep(0.03)
         end
     end
     return x_sol, S_in

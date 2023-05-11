@@ -9,7 +9,7 @@ pupil = CreatePupil(px=60, upsampling=4)
 psf = CreatePSF(pupil)
 psf_n = AddingNoise(psf, scaling=0.05)
 
-@vt psf, psf_n
+@vt psf#, psf_n
 
 
 default(size=(900, 800))
