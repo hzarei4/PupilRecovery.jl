@@ -2,7 +2,7 @@
 
 julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "30fc1ac84ced361f71eb7b3ac88e95f661e1f543"
+project_hash = "9fbddcf67ecc30b77ca31edb62f7f461fad54bec"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -18,9 +18,9 @@ version = "0.8.2"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra", "Requires"]
-git-tree-sha1 = "cc37d689f599e8df4f464b2fa3870ff7db7492ef"
+git-tree-sha1 = "76289dc51920fdc6e0013c872ba9551d54961c24"
 uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
-version = "3.6.1"
+version = "3.6.2"
 
 [[deps.ArgCheck]]
 git-tree-sha1 = "a3a402a35a2f7e0b87828ccabbd5ebfbebe356b4"
@@ -250,9 +250,9 @@ uuid = "dc8bdbbb-1ca9-579f-8c36-e416f6a65cce"
 version = "1.0.2"
 
 [[deps.DataAPI]]
-git-tree-sha1 = "e8119c1a33d267e16108be441a287a6981ba1630"
+git-tree-sha1 = "8da84edb865b0b5b0100c0666a9bc9a0b71c553c"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
-version = "1.14.0"
+version = "1.15.0"
 
 [[deps.DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
@@ -531,9 +531,9 @@ version = "1.0.2"
 
 [[deps.HTTP]]
 deps = ["Base64", "CodecZlib", "ConcurrentUtilities", "Dates", "Logging", "LoggingExtras", "MbedTLS", "NetworkOptions", "OpenSSL", "Random", "SimpleBufferStream", "Sockets", "URIs", "UUIDs"]
-git-tree-sha1 = "42c6b37c6a2242cb646a1dd5518631db0be9b967"
+git-tree-sha1 = "877b7bc42729aa2c90bbbf5cb0d4294bd6d42e5a"
 uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
-version = "1.8.1"
+version = "1.9.1"
 
 [[deps.HarfBuzz_jll]]
 deps = ["Artifacts", "Cairo_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "Graphite2_jll", "JLLWrappers", "Libdl", "Libffi_jll", "Pkg"]
@@ -711,9 +711,9 @@ version = "0.1.9"
 
 [[deps.InverseModeling]]
 deps = ["ChainRulesCore", "ComponentArrays", "IndexFunArrays", "LaTeXStrings", "NDTools", "Optim", "Zygote"]
-git-tree-sha1 = "0c0dacc5071cfeedd163d7a6635379b3303955cc"
+git-tree-sha1 = "4661c20955bc1ab500737cd46bee4192d19801e7"
 repo-rev = "master"
-repo-url = "/home/hossein/Programming/Julia/InverseModeling.jl"
+repo-url = "https://github.com/hzarei4/InverseModeling.jl"
 uuid = "ce844058-9528-415d-a63d-06f3dd08b29f"
 version = "0.1.0"
 
@@ -1163,7 +1163,7 @@ version = "0.3.17"
 deps = ["FFTW", "FourierTools", "Images", "IndexFunArrays", "InverseModeling", "NDTools", "NearestNeighbors"]
 git-tree-sha1 = "64e6c3f1d86eeced778b733e04a5cc01e05e7145"
 repo-rev = "main"
-repo-url = "/home/hossein/Programming/Julia/PSFDistiller.jl"
+repo-url = "https://github.com/bionanoimaging/PSFDistiller.jl"
 uuid = "04565bb4-ab3c-40ee-806f-74a8daaad57b"
 version = "0.1.0"
 
@@ -1180,10 +1180,10 @@ uuid = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 version = "0.12.3"
 
 [[deps.Parsers]]
-deps = ["Dates", "SnoopPrecompile"]
-git-tree-sha1 = "478ac6c952fddd4399e71d4779797c538d0ff2bf"
+deps = ["Dates", "PrecompileTools", "UUIDs"]
+git-tree-sha1 = "7302075e5e06da7d000d9bfa055013e3e85578ca"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "2.5.8"
+version = "2.5.9"
 
 [[deps.Pipe]]
 git-tree-sha1 = "6842804e7867b115ca9de748a0cf6b364523c16d"
@@ -1382,9 +1382,9 @@ version = "1.91.7"
 
 [[deps.SciMLOperators]]
 deps = ["ArrayInterface", "DocStringExtensions", "Lazy", "LinearAlgebra", "Setfield", "SparseArrays", "StaticArraysCore", "Tricks"]
-git-tree-sha1 = "d4b254372887d7cbad20ef34021cd69cb0e1d05f"
+git-tree-sha1 = "ed01a68c22907665e2f5a65ccc58668b6a764536"
 uuid = "c0aeaf25-5076-4817-a8d5-81caf7dfa961"
-version = "0.2.4"
+version = "0.2.6"
 
 [[deps.Scratch]]
 deps = ["Dates"]
