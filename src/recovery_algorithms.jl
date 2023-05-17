@@ -1,6 +1,10 @@
 export DMonPSF
 
+"""
+    function DM(x, beta, gamma_S, gamma_M, M_in, S_in)
 
+DM calculates a DifferenceMap
+"""
 function DM(x, beta, gamma_S, gamma_M, M_in, S_in)
 
     function P_S(x, S_in)
@@ -10,10 +14,14 @@ function DM(x, beta, gamma_S, gamma_M, M_in, S_in)
     
     function P_M(x, M_in)
         X = fft(x)
-    
-        X_new = M_in .* exp.(angle.(X) * im)
+
+        ctr = (1,1) # size(x).÷2 .+ 1
+        # enforce phase-only constraint
+        # X_new = M_in .* exp.(angle.(X) * im)
+        X_new = M_in .* cis.(angle.(X))
     
         x_new = ifft(X_new)
+        x_new[ctr...] = real(x_new[ctr...])
         return x_new
     end
     
@@ -30,7 +38,7 @@ function DM(x, beta, gamma_S, gamma_M, M_in, S_in)
     x_PMRS = P_M(R_S(x, gamma_S, S_in), M_in)
     x_PSRM = P_S(R_M(x, gamma_M, M_in), S_in)
 
-    x_new = x + beta .* (x_PMRS - x_PSRM)
+    x_new = x + 0.1*beta .* (x_PMRS - x_PSRM)
 
     return x_new, x_PSRM
 end
@@ -40,12 +48,19 @@ function convolution_filter(x, kernel)
 end
 
 
-function DMonPSF(psf; beta=0.7, it_max=10000)
+function DMonPSF(psf; beta=0.7, it_max=1000, plotting=false, shrinkwrap=false)
+    psf = upsample2(psf)
     gamma_M = -1.0/beta
     gamma_S = 1.0/beta
     psf = fftshift(psf)
-
-    x = rand(ComplexF64, size(psf))
+    
+    antialiasing_mask = fftshift(collect(disc(size(psf), size(psf)./4.0))) .+ 0.0
+    
+    # x = rand(ComplexF64, size(psf))
+    start_pupil = fftshift(collect(disc(size(psf), size(psf)./12.0))) .+ 0.0
+    x = complex(start_pupil) ./ sqrt(sum(abs2.(start_pupil)) * prod(size(psf))) .* sqrt(sum(psf))
+    @show sum(abs2.(fft(x))) 
+    @show sum(psf) 
     # f_1 = zeros(Float64, size(psf)[1])
     x_sol = zeros(ComplexF64, size(psf))
     S_in = zeros(Float64, size(psf))
@@ -55,14 +70,21 @@ function DMonPSF(psf; beta=0.7, it_max=10000)
     C_lp[10:size(psf)[1]-10, 10:size(psf)[2]-10] .= 1
     C_lp .= ifftshift(C_lp)
 
-    # (evaluateZernike(LinRange(-1, 1, size(psf)[1]), [0], [1.0], index=:OSA))
-    supp =  zeros(size(psf))
-    supp[10:size(psf)[1]-10, 10:size(psf)[2]-10] .= 1
-    supp .= ifftshift(supp)
+
+    if shrinkwrap
+        supp = zeros(size(psf))
+        supp[10:size(psf)[1]-10, 10:size(psf)[2]-10] .= 1
+    else
+        supp = evaluateZernike(LinRange(-1, 1, size(psf)[1]), [0], [1.0], index=:OSA)
+        supp .= fftshift(supp)
+    end
+    supp = copy(start_pupil)
+    # supp .= (supp)
 
     S_in .= supp
-    M_in .= psf
+    M_in .= sqrt.(max.(0,psf))
 
+    # antialiasing_mask = 1 # collect(box(size(x_sol), round.(size(x_sol)./1.5)))
 
     for it in 1:it_max
         x, x_PS = DM(x, beta, gamma_S, gamma_M, M_in, S_in)
@@ -72,27 +94,36 @@ function DMonPSF(psf; beta=0.7, it_max=10000)
         x_sol .= x_PS
         
         # Shrinkwrap
-        if it % 10 ==9
-            x_mod = convolution_filter(x_sol, C_lp)
+
+        if it % 10 == 9 
+            x_mod = convolution_filter((x_sol), C_lp)
             x_mod = abs.(x_mod)
             x_mod .= x_mod./ maximum(x_mod)
             supp .= x_mod .> 0.038
-            S_in = supp
+            S_in .= supp
+            S_in .*= antialiasing_mask
         end
-    
-        # if it % 50 == 0
-        #     Plots.display(plot(
 
-        #         heatmap(angle.((x_sol)), title = "Rec phase, loop $(it)", 
-        #             aspect_ratio=1, c=:twilight, clim=(-1*pi, pi), legend = :none), 
-        #         heatmap(abs.(fftshift(fft(x_sol))), title = "Rec PSF", aspect_ratio=1, legend = :none),
-        #         heatmap(fftshift(psf), title = "True PSF", aspect_ratio=1, legend = :none),
+        if it % 10 == 1 && plotting
+            rng = 0.3
+            psf_sol = abs2.(fftshift(fft(x_sol))) 
+            psf_meas = fftshift(psf)
+            mydiff = (psf_sol .- psf_meas) ./maximum(psf)
+            # pupil = ifftshift(Float64.(replace(angle.(x_sol), 0.0 => NaN)))
+            pupil = ifftshift(Float64.(angle.(x_sol)))
+            loss = sum(abs2.(mydiff))
+            Plots.display(plot(
+
+                heatmap(pupil, title = "Rec phase, loop $(it), loss: $(loss)", 
+                    aspect_ratio=1, c=:twilight, clim=(-rng*pi, rng*pi)), 
+                heatmap(abs2.(fftshift(fft(x_sol))), title = "Rec PSF", aspect_ratio=1, legend = :none),
+                heatmap(fftshift(psf), title = "True PSF", aspect_ratio=1, legend = :none),
                 
-        #         heatmap((abs.(fftshift(fft(x_sol))) .- abs.(fftshift(psf)))./maximum(abs.(fftshift(psf))), 
-        #             title = "PSF diff, scaled", aspect_ratio=1),
-        #         ))
-        #     sleep(0.03)
-        # end
+                heatmap(mydiff, 
+                    title = "PSF diff, scaled", aspect_ratio=1),#, clim=(0.0, 1.0)),
+                ))
+            sleep(0.001)
+        end
     end
     return x_sol, S_in
 end
