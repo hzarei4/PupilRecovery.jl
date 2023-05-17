@@ -1,48 +1,40 @@
-using Images
-using FileIO
-using Glob
+
 using Plots
 using View5D, FFTW
 using PupilRecovery
-using InverseModeling, PSFDistiller
+using PSFDistiller
+using BioformatsLoader
+
+BioformatsLoader.init()
+
+beads_raw = bf_import("/home/hossein/Data/PSF/20220815_beads/AirBubbleStack_LowConc.czi", order="XYZCT")
+beads=Float32.(beads_raw[1].data)[:,:,:,1,1]
 
 
-# Path to your directory
-path_to_images = "/home/hossein/Data/PSF/LowContrast/"
 
-# Get all TIFF files in the directory
-tiff_files = glob("*.tiff", path_to_images)
 
-# Initialize an empty array to store images
-images = []
+main_img = beads[:,:,29]
 
-# Loop over all TIFF files and read them
-for file in tiff_files
-    # Create the full file path
-    file_path = joinpath(path_to_images, file)
+@vt main_img
 
-    # Load the image
-    img = load(file_path)
 
-    # Append the image to the images array
-    push!(images, img)
-end
 
-# Now, `images` is an array containing all the TIFF images in the directory
-@vt Float64.(images[22])
-
-main_img = Float64.(images[22])
-
-psf =  main_img[247:327, 225:305]
-
-@vt psf
+mypsf, rois, positions, selected, params, _ = distille_PSF(main_img, 
+                                                roi_size=ntuple((x)->40,ndims(main_img)));
+@vt mypsf
 
 default(size=(900, 800))
 
 
-mypsf, rois, positions, selected, params, _ = distille_PSF(main_img, roi_size=Tuple(60 .* ones(Int, ndims(main_img))));
 
-x_solution = DMonPSF(mypsf, it_max=1000);
+x_solution, S_in = DMonPSF(mypsf, it_max=500, beta=0.2, plotting=true);
 
 
-@btime $x_solution = DMonPSF($mypsf, it_max=1000);
+heatmap(abs.(abs.(fftshift(fft(x_solution))) .- abs.((mypsf)))./maximum(abs.(fftshift(mypsf))), 
+title = "PSF diff", aspect_ratio=1)
+
+
+
+
+@btime $x_solution = DMonPSF($mypsf, it_max=100, beta=0.5);
+
