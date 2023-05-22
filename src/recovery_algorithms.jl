@@ -51,7 +51,7 @@ end
 function DMonPSF(psf; beta=0.7, it_max=1000, plotting=false, shrinkwrap=false)
     psf = upsample2(psf)
     gamma_M = -1.0/beta
-    gamma_S = 1.0/beta
+    gamma_S =  1.0/beta
     psf = fftshift(psf)
     
     antialiasing_mask = fftshift(collect(disc(size(psf), size(psf)./4.0))) .+ 0.0
@@ -59,8 +59,8 @@ function DMonPSF(psf; beta=0.7, it_max=1000, plotting=false, shrinkwrap=false)
     # x = rand(ComplexF64, size(psf))
     start_pupil = fftshift(collect(disc(size(psf), size(psf)./12.0))) .+ 0.0
     x = complex(start_pupil) ./ sqrt(sum(abs2.(start_pupil)) * prod(size(psf))) .* sqrt(sum(psf))
-    @show sum(abs2.(fft(x))) 
-    @show sum(psf) 
+    # @show sum(abs2.(fft(x))) 
+    # @show sum(psf) 
     # f_1 = zeros(Float64, size(psf)[1])
     x_sol = zeros(ComplexF64, size(psf))
     S_in = zeros(Float64, size(psf))
@@ -84,17 +84,53 @@ function DMonPSF(psf; beta=0.7, it_max=1000, plotting=false, shrinkwrap=false)
     S_in .= supp
     M_in .= sqrt.(max.(0,psf))
 
+    loss_trace = zeros(it_max)
+    beta_trace = zeros(it_max)
     # antialiasing_mask = 1 # collect(box(size(x_sol), round.(size(x_sol)./1.5)))
+    flag = false
+    rng = 0.3
 
     for it in 1:it_max
-        x, x_PS = DM(x, beta, gamma_S, gamma_M, M_in, S_in)
+
+        x_tmp, x_PS = DM(x, beta, gamma_S, gamma_M, M_in, S_in)
         
         x_PS[abs.(x_PS) .< abs(eps())] .= zero(eltype(x_PS))
     
         x_sol .= x_PS
         
-        # Shrinkwrap
 
+
+        psf_sol = abs2.(fftshift(fft(x_sol))) 
+        psf_meas = fftshift(psf)
+        mydiff = (psf_sol .- psf_meas) ./ maximum(psf)
+        # pupil = ifftshift(Float64.(replace(angle.(x_sol), 0.0 => NaN)))
+        pupil = ifftshift(Float64.(angle.(x_sol)))
+        loss = sum(abs2.(mydiff))
+        beta_trace[it] = beta
+        
+        if false #it > 100
+            if loss > loss_trace[it-1]
+                beta /= 2.0
+                @show it beta 
+                loss_trace[it] = loss_trace[it-1]
+
+                continue
+            end
+
+
+        end
+        if flag==false && loss < 0.005 
+            beta /=2
+            flag = true
+            @show it
+        end
+        
+
+        loss_trace[it] = loss
+        x = x_tmp
+
+
+        # Shrinkwrap
         if it % 10 == 9 
             x_mod = convolution_filter((x_sol), C_lp)
             x_mod = abs.(x_mod)
@@ -104,14 +140,8 @@ function DMonPSF(psf; beta=0.7, it_max=1000, plotting=false, shrinkwrap=false)
             S_in .*= antialiasing_mask
         end
 
-        if it % 10 == 1 && plotting
-            rng = 0.3
-            psf_sol = abs2.(fftshift(fft(x_sol))) 
-            psf_meas = fftshift(psf)
-            mydiff = (psf_sol .- psf_meas) ./maximum(psf)
-            # pupil = ifftshift(Float64.(replace(angle.(x_sol), 0.0 => NaN)))
-            pupil = ifftshift(Float64.(angle.(x_sol)))
-            loss = sum(abs2.(mydiff))
+        if plotting # &&  it % 10 == 1
+
             Plots.display(plot(
 
                 heatmap(pupil, title = "Rec phase, loop $(it), loss: $(loss)", 
@@ -124,6 +154,8 @@ function DMonPSF(psf; beta=0.7, it_max=1000, plotting=false, shrinkwrap=false)
                 ))
             sleep(0.001)
         end
+
+
     end
-    return x_sol, S_in
+    return x_sol, S_in, loss_trace
 end

@@ -1,9 +1,12 @@
 
-using Plots
+using Plots, Printf
 using View5D, FFTW
 using PupilRecovery
 using PSFDistiller
 using BioformatsLoader
+
+Base.show(io::IO, f::Float64) = @printf(io, "%.11f", f)
+
 
 BioformatsLoader.init()
 
@@ -28,10 +31,6 @@ default(size=(900, 800))
 
 
 x_solution, S_in = DMonPSF(mypsf, it_max=500, beta=0.2, plotting=true);
-
-
-heatmap(abs.(abs.(fftshift(fft(x_solution))) .- abs.((mypsf)))./maximum(abs.(fftshift(mypsf))), 
-title = "PSF diff", aspect_ratio=1)
 
 
 
