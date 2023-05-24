@@ -30,7 +30,7 @@ default(size=(1200, 800))
 
 
 
-x_solution, S_in, loss_trace = DMonPSF(mypsf, it_max=1000, beta=0.8, eta=0.8, plotting=true);
+x_solution, loss_trace = DMonPSF(mypsf, it_max=1000, tol=0.01, beta=0.8, eta=0.8, plotting=true);
 
 
 
