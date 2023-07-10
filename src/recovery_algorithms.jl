@@ -133,10 +133,11 @@ end
 # Example
 See the /examples folder for the example of using this function
 """
-function DMonPSF(psf::AbstractArray; β=0.7, η=0.1, it_max=1000, tol=0.05, plotting=false, iterative_plotting=false)
+function DMonPSF(psf::AbstractArray; β=0.7, η=0.1, it_max=1000, tol=0.05)#, plotting=false, iterative_plotting=false)
     
-
-    default(size=(1200, 800))
+    # for plotting purposes
+    # default(size=(1200, 800))
+    
     # the relaxation paramaters
     γ_M = -1.0/β
     γ_S =  1.0/β
@@ -211,7 +212,7 @@ function DMonPSF(psf::AbstractArray; β=0.7, η=0.1, it_max=1000, tol=0.05, plot
 
         if loss_trace[it]<tol
             if plotting
-                plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
+                # plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
             end
             flag_converged = true
 
@@ -219,7 +220,7 @@ function DMonPSF(psf::AbstractArray; β=0.7, η=0.1, it_max=1000, tol=0.05, plot
             break
         else
             if plotting && iterative_plotting
-                plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
+                # plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
             end
         end
     end
