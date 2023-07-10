@@ -211,17 +211,17 @@ function DMonPSF(psf::AbstractArray; β=0.7, η=0.1, it_max=1000, tol=0.05)#, pl
 
 
         if loss_trace[it]<tol
-            if plotting
-                # plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
-            end
+            # if plotting
+            #     # plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
+            # end
             flag_converged = true
 
             println("\n\tThe algorithm is converged with these details: \n\n\t\titerations: $(it)\n\t\tloss value=$(loss_trace[it])")
             break
         else
-            if plotting && iterative_plotting
-                # plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
-            end
+            # if plotting && iterative_plotting
+            #     # plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
+            # end
         end
     end
 
