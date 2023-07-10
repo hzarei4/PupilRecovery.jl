@@ -29,7 +29,7 @@ function DM!(x::AbstractArray, x_PS::AbstractArray, β::AbstractFloat, η::Abstr
     function P_M(x, M_in)
         X = fft(x)
 
-        ctr = (1,1) # size(x).÷2 .+ 1
+        ctr = size(x).÷2 .+ 1 #  (1,1)
         # enforce phase-only constraint
         # X_new = M_in .* exp.(angle.(X) * im)
         X_new = M_in .* cis.(angle.(X))
@@ -76,7 +76,7 @@ end
 
 Plots the results of each loop
 """
-function plotresult(pupil, x_sol, psf, mydiff, it, loss, rng)
+function plotresult(x_sol, psf, mydiff, it, loss, rng)
     try
         IJulia.clear_output(true) 
     catch
@@ -84,15 +84,30 @@ function plotresult(pupil, x_sol, psf, mydiff, it, loss, rng)
 
     Plots.display(plot(
 
-    heatmap(pupil, title = "Rec phase, loop $(it), loss: $(loss)", 
-        aspect_ratio=1, c=:twilight, clim=(-1.0*rng*pi, rng*pi), legend = :none), 
+    heatmap(Float64.(angle.(ifftshift(x_sol))), title = "Rec phase, loop $(it), loss: $(loss)", 
+        aspect_ratio=1, c=:twilight, clim=(-pi, pi),
+        axis=([], false),
+        legend = :none
+        ), 
 
 
-    heatmap(abs2.(fftshift(fft(x_sol))), title = "Rec PSF", aspect_ratio=1, legend = :none),
-    heatmap(fftshift(psf), title = "True PSF", aspect_ratio=1, legend = :none),
-    
+    heatmap(abs2.(fftshift(fft(x_sol))), title = "Rec PSF", aspect_ratio=1, legend = :none,
+    axis=([], false),
+    c=:grays,
+    ),
+
     heatmap(mydiff, 
-        title = "PSF diff, scaled", aspect_ratio=1),#, clim=(0.0, 1.0)),
+    title = "PSF diff, scaled", aspect_ratio=1,
+    axis=([], false),
+    c=:grays,
+    ),#, clim=(0.0, 1.0)),
+
+    heatmap(fftshift(psf), title = "Measured PSF", aspect_ratio=1, legend = :none,
+    c=:grays,
+    axis=([], false),
+    )
+    
+
     ))
     sleep(0.001)
     
@@ -120,12 +135,15 @@ See the /examples folder for the example of using this function
 """
 function DMonPSF(psf::AbstractArray; β=0.7, η=0.1, it_max=1000, tol=0.05, plotting=false, iterative_plotting=false)
     
+
+    default(size=(1200, 800))
     # the relaxation paramaters
     γ_M = -1.0/β
     γ_S =  1.0/β
     
     # upsampling the PSF
-    psf = upsample2(psf)
+    # psf = upsample2(psf)
+    
     psf = fftshift(psf)
     
     antialiasing_mask = fftshift(collect(disc(size(psf), size(psf)./4.0))) .+ 0.0
@@ -152,12 +170,12 @@ function DMonPSF(psf::AbstractArray; β=0.7, η=0.1, it_max=1000, tol=0.05, plot
 
     # antialiasing_mask = 1 # collect(box(size(x_sol), round.(size(x_sol)./1.5)))
     flag_converged = false
-    rng = 0.3
+    rng = 1.0
 
 
     pupil = zeros(ComplexF64, size(psf))
     psf_meas = zeros(ComplexF64, size(psf))
-    mydiff = zeros(ComplexF64, size(psf))
+    mydiff = zeros(Float64, size(psf))
     
     psf_sol = zeros(Float64, size(psf))
     x_mod = zeros(Float64, size(psf))
@@ -185,7 +203,7 @@ function DMonPSF(psf::AbstractArray; β=0.7, η=0.1, it_max=1000, tol=0.05, plot
             x_mod .= abs.(convolution_filter((x_sol), C_lp))
             # x_mod = abs.(x_mod)
             x_mod .= x_mod./ maximum(x_mod)
-            S_in .= x_mod .> 0.038 # magic number! :D
+            S_in .= x_mod .> 0.03#8 # magic number! :D
             # S_in .= supp
             S_in .*= antialiasing_mask
         end
@@ -193,15 +211,15 @@ function DMonPSF(psf::AbstractArray; β=0.7, η=0.1, it_max=1000, tol=0.05, plot
 
         if loss_trace[it]<tol
             if plotting
-                plotresult(pupil, x_sol, psf, mydiff, it, loss_trace[it], rng)
+                plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
             end
             flag_converged = true
 
-            println("\n\tThe algorithm is converged with these details: \n\n\t\titerations: $(it)\n\t\tloss value=$(loss)")
+            println("\n\tThe algorithm is converged with these details: \n\n\t\titerations: $(it)\n\t\tloss value=$(loss_trace[it])")
             break
         else
             if plotting && iterative_plotting
-                plotresult(pupil, x_sol, psf, mydiff, it, loss_trace[it], rng)
+                plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
             end
         end
     end

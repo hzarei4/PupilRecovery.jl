@@ -1,0 +1,4 @@
+[deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+FourierTools = "b18b359b-aebc-45ac-a139-9c0ccbb2871e"
+InverseModeling = "ce844058-9528-415d-a63d-06f3dd08b29f"
