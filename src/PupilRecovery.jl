@@ -4,6 +4,7 @@ module PupilRecovery
 using ZernikePolynomials
 using FFTW
 using IndexFunArrays
+using Plots
 # using FourierTools
 
 include("simulation_psf.jl")

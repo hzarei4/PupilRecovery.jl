@@ -16,31 +16,48 @@ beads=Float32.(beads_raw[1].data)[:,:,:,1,1]
 @vv beads
 
 
-main_img = beads[:,:,26]
+main_img = beads[:,:,28]
 
 @vt main_img
 
 
 
-mypsf, rois, positions, selected, params, _ = distille_PSF(main_img, 
-                                                roi_size=ntuple((x)->40,ndims(main_img)));
+mypsf, rois, positions, selected, params, _ = distille_PSF(beads)#, 
+                                                # roi_size=ntuple((x)->60,ndims(main_img)));
+      
 @vt mypsf
 
-default(size=(900, 600))
+# default(size=(800, 800))
+@time x_solution, loss_trace = DMonPSF(mypsf; β=0.5, η=0.9, it_max=1000, tol=0.002, plotting=true, iterative_plotting=false);
+
+savefig("examples/beads_28.png")
 
 
-@time x_solution, loss_trace = DMonPSF(mypsf; β=0.99, η=0.7, it_max=1000, tol=0.001, plotting=false, iterative_plotting=false);
+begin
+    @time x_solution, loss_trace = DMonPSF(mypsf; β=0.99, η=0.5, it_max=1000, tol=0.05, plotting=true, iterative_plotting=false);
 
+    heatmap(angle.(fftshift(x_solution)), 
+                            title = "Recovered Phase", aspect_ratio=1.0, 
+                            c=:twilight, clim=(-pi, pi), 
+                            legend = :none,
+                            )
+end
 
+heatmap(evaluateZernike(x, [12], [1.0], index=:OSA) , 
+title = "spherical abberration", aspect_ratio=1.0, 
+c=:twilight, clim=(-pi, pi), 
+legend = :none,
+)
+# savefig("examples/avgBeadsResult.png")
 
-savefig("examples/avgBeadsResult.png")
+plot(collect(range(1, length(loss_trace))), loss_trace)
 
 
 rois_all_phase = zeros(size(mypsf)..., length(rois))
 
 for i in 1:length(rois)
 
-    @time x_solution, loss_trace = DMonPSF(rois[i]; β=0.99, η=0.7, it_max=1000, tol=0.015, plotting=false, iterative_plotting=false);
+    @time x_solution, loss_trace = DMonPSF(rois[i]; β=0.99, η=0.7, it_max=1000, tol=0.0, plotting=false, iterative_plotting=false);
     rois_all_phase[:, :, i] = angle.(x_solution)
     #sleep(2)
 end

@@ -133,11 +133,12 @@ end
 # Example
 See the /examples folder for the example of using this function
 """
-function DMonPSF(psf::AbstractArray; β=0.7, η=0.1, it_max=1000, tol=0.05)#, plotting=false, iterative_plotting=false)
+function DMonPSF(psf::AbstractArray; β=0.7, η=0.1, it_max=1000, tol=0.05, plotting=false, iterative_plotting=false)
     
     # for plotting purposes
-    # default(size=(1200, 800))
-    
+    default(size=(1200, 800))
+    # magic_number = 0.038
+
     # the relaxation paramaters
     γ_M = -1.0/β
     γ_S =  1.0/β
@@ -204,24 +205,24 @@ function DMonPSF(psf::AbstractArray; β=0.7, η=0.1, it_max=1000, tol=0.05)#, pl
             x_mod .= abs.(convolution_filter((x_sol), C_lp))
             # x_mod = abs.(x_mod)
             x_mod .= x_mod./ maximum(x_mod)
-            S_in .= x_mod .> 0.03#8 # magic number! :D
+            S_in .= x_mod .> 0.03#magic_number # magic number! :D
             # S_in .= supp
             S_in .*= antialiasing_mask
         end
 
 
         if loss_trace[it]<tol
-            # if plotting
-            #     # plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
-            # end
+            if plotting
+                plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
+            end
             flag_converged = true
 
             println("\n\tThe algorithm is converged with these details: \n\n\t\titerations: $(it)\n\t\tloss value=$(loss_trace[it])")
             break
         else
-            # if plotting && iterative_plotting
-            #     # plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
-            # end
+            if plotting && iterative_plotting
+                plotresult(x_sol, psf, mydiff, it, loss_trace[it], rng)
+            end
         end
     end
 
