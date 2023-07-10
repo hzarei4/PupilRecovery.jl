@@ -2,7 +2,7 @@
 
 julia_version = "1.9.0"
 manifest_format = "2.0"
-project_hash = "c1ff6db72e172203bc4cc966c17a8f81b0339eda"
+project_hash = "9961ccb733c803314d7db3e917869bf93dc29ae7"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -204,6 +204,8 @@ uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 [[deps.IndexFunArrays]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
 git-tree-sha1 = "e66a2aeb6d5814015004080e5203dfff44d2856f"
+repo-rev = "master"
+repo-url = "https://github.com/bionanoimaging/IndexFunArrays.jl"
 uuid = "613c443e-d742-454e-bfc6-1d7f8dd76566"
 version = "0.2.6"
 
